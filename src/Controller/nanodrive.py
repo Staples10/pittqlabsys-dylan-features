@@ -107,6 +107,7 @@ class MCLNanoDrive(Device):
             for key, value in settings.items():     #goes through inputed settings to see what commands to send ot update parameters
                 #print('nd updating: ',key,'to: ',value)
                 if key == 'serial':
+                    print('updating serial')
                     self.close()
                     self._initilize_handle()    #changes handle under control
 

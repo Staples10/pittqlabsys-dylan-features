@@ -54,7 +54,7 @@ Experiment to select points on an image. The selected points are saved and can b
         """
         self.log('!!! If using SelectPoints in an Iterator use SKIP Button to finish !!!')
         self.data = {'nv_locations': [], 'image_data': None, 'extent': None, 'pt_indices': []}
-        #two progress signals here ensure that plot is called so that SelectPoints can properly get Image from previous experiment in iterator
+        #two progress signals and 0.2 sleep ensure that plot is called so that SelectPoints can properly get Image from previous experiment in iterator
         self.progress = 49
         self.updateProgress.emit(self.progress)
         time.sleep(0.2)

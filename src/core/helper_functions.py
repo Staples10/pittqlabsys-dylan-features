@@ -298,8 +298,10 @@ class MatlabSaver:
         Args:
             data_dic: experiment data dictionary
             settings_dic: experiment settings dictionary
-            expand_settings: If true will flatten settings dictionary so each key is a field in matlab file
+            flatten_settings: If true will flatten settings dictionary so each key is a field in matlab file
                              If false settings will appear as a 1x1 struct in matlab file with keys as subfields
+            iterator_info_dic: to be passed by ExperimentIterator
+            flatten_iterator_info: T/F to flatten similar to flatten_settings
         Returns:
             value_list: List of values that can be made into an array for saving
             dtype_list: List of dtype touples for numpy array
@@ -367,7 +369,7 @@ class MatlabSaver:
 
         self._update_largest_dtype_shapes(field_shapes) #update before checking data size so largest shapes are already calculated
 
-        # all_dtype_list elements are lists ie the origonal data_types_list from each experiment
+        # all_dtype_list elements are lists ie the original data_types_list from each experiment
         self.all_dtype_list.append(new_data_types_list)
         # all_values_list elements are lists ie the values_list from each experiment
         self.all_values_list.append(values_list)
@@ -409,6 +411,8 @@ class MatlabSaver:
                     print("Expected dtype keys:", [t[0] for t in self.final_dtype_list])
                 else:
                     print(f"Row {i} OK (length {len(row)})")
+            print('Final dtype list:', self.final_dtype_list)
+            print('Final values list:', list_of_value_list_tuples)
 
         final_array = np.array(list_of_value_list_tuples, dtype=self.final_dtype_list)
         if return_array:  # for more complex shapes may want to get array to use in another function

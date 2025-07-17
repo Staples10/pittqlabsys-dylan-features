@@ -37,7 +37,7 @@ def test_confocal_fast(get_adwin, get_nanodrive,  qtbot, capsys):
         expt.run()
         print(expt.data)
 
-        #Asked AI on how to use pytest with pyqtgraph:
+        #Asked AI on how to use pytest with pyqtgraph: (Seems to work well)
         # Setup pyqtgraph layout and plot
         app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
         win = pg.GraphicsLayoutWidget()  # main container
@@ -74,7 +74,6 @@ def test_confocal_slow(get_adwin, get_nanodrive,  qtbot, capsys):
         expt.run()
         print(expt.data)
 
-        #Asked AI on how to use pytest with pyqtgraph:
         # Setup pyqtgraph layout and plot
         app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
         win = pg.GraphicsLayoutWidget()  # main container
@@ -108,7 +107,6 @@ def test_confocal_point(get_adwin, get_nanodrive,  qtbot, capsys):
         expt.run()
         print(expt.data)
 
-        #Asked AI on how to use pytest with pyqtgraph:
         # Setup pyqtgraph layout and plot
         app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
         win = pg.GraphicsLayoutWidget()  # main container

@@ -477,8 +477,8 @@ class PyQtCoordinatesBar(QtWidgets.QWidget):
         '''
         Fucntion is called initally to set up default mouse positioning. Should be called again whenever an experiment finishes to interacte with new plot/data
         '''
-        item = self.connected_graph.getItem(row=0, col=0)  # gets a plot item
-        #!!!Only work if graphicslayout has 1 plot item!!!
+        item = self.connected_graph.getItem(row=0, col=0)  # gets 1st item
+        #!!!Only work if for 1st plot item in graphicslayout!!!
         if isinstance(item, (pg.PlotItem, pg.ImageItem)):
             #only if the item is a PlotItem or ImageItem will it have a viewbox (and coordinates) that your cursor hovers over
             self.viewbox = item.vb

@@ -507,9 +507,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cordbar_1.setMinimumSize(QtCore.QSize(200, 50))
         self.cordbar_1.setObjectName('cordinatebar_1')
 
-        # connects plots so when clicked on the plot_clicked method triggers
+        #clicked plots functionality for each graph was removed in favor of working select point experiment
+        '''# connects plots so when clicked on the plot_clicked method triggers
         self.pyqtgraphwidget_1.graph.scene().sigMouseClicked.connect(self.plot_clicked)
-        self.pyqtgraphwidget_2.graph.scene().sigMouseClicked.connect(self.plot_clicked)
+        self.pyqtgraphwidget_2.graph.scene().sigMouseClicked.connect(self.plot_clicked)'''
 
 
     def load_experiments(self):

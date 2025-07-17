@@ -277,7 +277,7 @@ class ConfocalScan_Fast(Experiment):
         #print('Position Data: ','\n',self.data['x_pos'],'\n',self.data['y_pos'],'\n','Max x: ',np.max(self.data['x_pos']),'Max y: ',np.max(self.data['y_pos']))
         #print('Counts: ','\n',self.count_data)
         #print('All data: ',self.data)
-
+        self.log(f'Max counts: {np.max(self.data["count_img"])}')
         self.after_scan()
 
     def _plot(self, axes_list, data=None):
