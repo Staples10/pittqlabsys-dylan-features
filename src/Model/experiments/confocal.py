@@ -14,6 +14,7 @@ from src.core import Parameter, Experiment
 import os
 from time import sleep
 import pyqtgraph as pg
+import keyboard
 
 class ConfocalScan_Fast(Experiment):
     '''
@@ -34,6 +35,7 @@ class ConfocalScan_Fast(Experiment):
                    Parameter('y', 95.0, float, 'y-coordinate end in microns')
                    ]),
         Parameter('z_pos',50.0,float,'z position of nanodrive; useful for z-axis sweeps to find NVs'),
+        Parameter('move_to_Z_position', False, bool, 'if true, the nanodrive will move to the above Z position'),
         Parameter('resolution', 1.0, [2.0,1.0,0.5,0.25,0.1,0.05,0.025,0.001], 'Resolution of each pixel in microns. Limited to give '),
         Parameter('time_per_pt', 2.0, [2.0,5.0], 'Time in ms at each point to get counts; same as load_rate for nanodrive. Wroking values 2 or 5 ms'),
         Parameter('ending_behavior', 'return_to_origin', ['return_to_inital_pos', 'return_to_origin', 'leave_at_corner'],'Nanodrive position after scan'),
@@ -85,7 +87,15 @@ class ConfocalScan_Fast(Experiment):
             z_pos = 0.0
         elif z_pos > 100.0:
             z_pos = 100.0
-        self.nd.update({'z_pos': z_pos})
+
+        # sometimes we want to leave the nanodrive in its current position
+        if self.settings['move_to_Z_position']:
+            print(f'moving nanodrive to positions z = {z_pos}')
+            self.nd.update({'z_pos': z_pos})
+        else:
+            current_z = self.nd.read_probes('z_pos')
+            print('not moving nanodrive')
+            print(f'nanodrive staying at z = {current_z}')
 
         # tracker to only save 3D image slice once
         self.data_collected = False
@@ -438,7 +448,15 @@ class ConfocalScan_Slow(Experiment):
             z_pos = 0.0
         elif z_pos > 100.0:
             z_pos = 100.0
-        self.nd.update({'z_pos': z_pos})
+
+        # sometimes we want to leave the nanodrive in its current position
+        if self.settings['move_to_Z_position']:
+            print(f'moving nanodrive to positions z = {z_pos}')
+            self.nd.update({'z_pos': z_pos})
+        else:
+            current_z = self.nd.read_probes('z_pos')
+            print('not moving nanodrive')
+            print(f'nanodrive staying at z = {current_z}')
 
         # tracker to only save 3D image slice once
         self.data_collected = False
@@ -669,7 +687,22 @@ class Confocal_Point(Experiment):
         Parameter('point',
                   [Parameter('x',0.0,float,'x-coordinate in microns'),
                    Parameter('y',0.0,float,'y-coordinate in microns'),
-                   Parameter('z',0.0,float,'z-coordinate in microns')
+                   Parameter('z',0.0,float,'z-coordinate in microns'),
+                   Parameter('move_to_position', False, bool, 'if true, the nanodrive will move to the above points-used for automation looping')
+                   ]),
+        Parameter('keyboard_control_nanodrive',
+                  [Parameter('keyboard_control_on', False, bool,'turn on for keyboard control of the nanodrive'),
+                   Parameter('x_neg_key', 'a', str, 'negative x direction key'),
+                   Parameter('x_pos_key', 'd', str,'positive x direction key'),
+                   Parameter('x_step', 0.1, float, 'step size in x direction'),
+                   Parameter('y_neg_key', 's', str, 'negative y direction key'),
+                   Parameter('y_pos_key', 'w', str, 'positive y direction key'),
+                   Parameter('y_step', 0.1, float, 'step size in y direction'),
+                   Parameter('z_pos_key', 'j', str, 'positive x direction key'),
+                   Parameter('z_neg_key', 'k', str, 'negative x direction key'),
+                   Parameter('z_step', 0.1, float, 'step size in x direction'),
+                   Parameter('return_to_start_key', 'o', str, 'key to return to starting location'),
+                   Parameter('settle_time', 0.2, float,'Time in seconds to allow NanoDrive to settle to correct position'),
                    ]),
         Parameter('count_time', 2.0, float, 'Time in ms at  point to get count data'),
         Parameter('num_cycles', 10, int, 'Number of samples to average; set as Par_10 in adbasic scirpt'),
@@ -744,8 +777,41 @@ class Confocal_Point(Experiment):
         #set adwin delay which determines the counting time
         adwin_delay = round((self.settings['count_time']*1e6) / (3.3))
         self.adw.update({'process_1':{'delay':adwin_delay,'running':True}})
-        self.nd.update({'x_pos':x,'y_pos':y,'z_pos':z})
+
+        #sometimes we want to leave the nanodrive in its current position
+        if self.settings['point']['move_to_position']:
+            print(f'moving nanodrive to positions x = {x}, y = {y}, z = {z}')
+            self.nd.update({'x_pos': x, 'y_pos': y, 'z_pos': z})
+        else:
+            print('not moving nanodrive')
+
+        #get the current xyz positions
+        original_x = self.nd.read_probes('x_pos')
+        original_y = self.nd.read_probes('y_pos')
+        original_z = self.nd.read_probes('z_pos')
+        print(f'nanodrive at x = {original_x}, y = {original_y}, z = {original_z}')
+
         sleep(0.1)  #time for stage to move and adwin process to initilize
+
+        #determine if keyboard controls are on
+        #if it is break out the parameters for keyboard tuning of the nanodrive
+        if self.settings['keyboard_control_nanodrive']['keyboard_control_on']:
+            keyboard_control_on = True
+            x_neg_key = self.settings['keyboard_control_nanodrive']['x_neg_key']
+            x_pos_key = self.settings['keyboard_control_nanodrive']['x_pos_key']
+            x_step = self.settings['keyboard_control_nanodrive']['x_step']
+            y_neg_key = self.settings['keyboard_control_nanodrive']['y_neg_key']
+            y_pos_key = self.settings['keyboard_control_nanodrive']['y_pos_key']
+            y_step = self.settings['keyboard_control_nanodrive']['y_step']
+            z_neg_key = self.settings['keyboard_control_nanodrive']['z_neg_key']
+            z_pos_key = self.settings['keyboard_control_nanodrive']['z_pos_key']
+            z_step = self.settings['keyboard_control_nanodrive']['z_step']
+            return_to_start_key = self.settings['keyboard_control_nanodrive']['return_to_start_key']
+            settle_time = self.settings['keyboard_control_nanodrive']['settle_time']
+        else:
+            keyboard_control_on = False
+
+
 
         if self.settings['continuous'] == False:
             if self.settings['plot_avg']:
@@ -770,6 +836,30 @@ class Confocal_Point(Experiment):
         elif self.settings['continuous'] == True:
             while self._abort == False:     #self._abort is defined in experiment.py and is true false while running and set false when stop button is hit
                 sleep(self.settings['graph_params']['refresh_rate'])    #effictivly this sleep is the time interval the graph is refreshed (1/fps) counting window
+
+                #if keyboard tuning is on, look for keyboard presses, and move nanodrive accordingly
+                if keyboard_control_on:
+                    if keyboard.is_pressed(x_neg_key):
+                        self.nd.update({'x_pos': self.nd.read_probes('x_pos') - x_step})
+                        sleep(settle_time)
+                    if keyboard.is_pressed(x_pos_key):
+                        self.nd.update({'x_pos': self.nd.read_probes('x_pos') + x_step})
+                        sleep(settle_time)
+                    if keyboard.is_pressed(y_neg_key):
+                        self.nd.update({'y_pos': self.nd.read_probes('y_pos') - y_step})
+                        sleep(settle_time)
+                    if keyboard.is_pressed(y_pos_key):
+                        self.nd.update({'y_pos': self.nd.read_probes('y_pos') + y_step})
+                        sleep(settle_time)
+                    if keyboard.is_pressed(z_neg_key):
+                        self.nd.update({'z_pos': self.nd.read_probes('z_pos') - z_step})
+                        sleep(settle_time)
+                    if keyboard.is_pressed(z_pos_key):
+                        self.nd.update({'z_pos': self.nd.read_probes('z_pos') + z_step})
+                        sleep(settle_time)
+                    if keyboard.is_pressed(return_to_start_key):
+                        self.nd.update({'x_pos': original_x, 'y_pos': original_y, 'z_pos': original_z})
+                        sleep(10*settle_time)
 
                 if self.settings['plot_avg']:
                     raw_counts = self.adw.read_probes('int_var',id=5) / self.settings['num_cycles'] #Par_5 stores the total counts over 'num_cycles'
